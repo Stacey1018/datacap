@@ -13,7 +13,7 @@
     <name>DataCap plugin for jdbc (OceanBase)</name>
 
     <properties>
-        <oceanbase.version>2.4.0</oceanbase.version>
+        <oceanbase.version>2.4.2</oceanbase.version>
         <plugin.name>jdbc-oceanbase</plugin.name>
     </properties>
 
