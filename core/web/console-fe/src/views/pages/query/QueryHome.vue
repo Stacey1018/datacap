@@ -62,14 +62,16 @@
                   <Button @click="handlerPlusEditor" size="small" type="primary" icon="md-add"/>
                 </template>
                 <TabPane v-for="editor in editors" :key="editor.key" :name="editor.key" :label="editor.title" :closable="editor.closable">
-                  <MonacoEditor theme="vs" :options="{theme: 'vs-dark', fontSize: 15}" language="sql" :height="300"
-                                :key="activeKey.value" @change="handlerChangeEditorValue"
-                                v-model:value="activeEditorValue" @editorDidMount="handlerEditorDidMount($event, 'mysql')">
-                  </MonacoEditor>
+
                 </TabPane>
               </Tabs>
+              <MonacoEditor theme="vs" :options="{theme: 'vs-dark', fontSize: 15}" language="sql" :height="300"
+                                :key="activeKey.value" @change="handlerChangeEditorValue"
+                                v-model:value="activeEditorValue" @editorDidMount="handlerEditorDidMount($event, 'mysql')">
+                </MonacoEditor>
             </div>
           </Card>
+
           <div style="margin-top: 5px;">
             <BasicTableComponent v-if="tableConfigure" :configure="tableConfigure"></BasicTableComponent>
           </div>
@@ -89,7 +91,7 @@ import {FormatService} from "@/services/FormatService";
 import axios, {CancelTokenSource} from "axios";
 import * as monaco from 'monaco-editor';
 import MonacoEditor from 'monaco-editor-vue3';
-import {defineComponent, ref} from "vue";
+import {defineComponent, ref, toRaw} from "vue";
 import {useRouter} from "vue-router";
 import {SnippetService} from "@/services/SnippetService";
 import DatabaseTree from "@/components/common/DatabaseTree.vue";
@@ -101,8 +103,8 @@ import {AuditService} from "@/services/AuditService";
 import FunctionsService from "@/services/settings/functions/FunctionsService";
 import {useI18n} from "vue-i18n";
 
-const editors = ref<{ title: string; key: string; closable?: boolean }[]>([
-  {title: 'Editor', key: '1', closable: false}
+const editors = ref<{ title: string; key: string; closable?: boolean; automaticLayout?: boolean }[]>([
+  {title: 'Editor', key: '1', closable: false, automaticLayout: true}
 ]);
 const activeKey = ref(editors.value[0].key);
 const editorMap = new Map<string, monaco.editor.ICodeEditor>();
@@ -140,12 +142,21 @@ export default defineComponent({
       activeEditorValue: '',
       editors,
       activeKey,
-      editorValueMap
+      editorValueMap,
     }
   },
   created()
   {
     this.handlerInitialize();
+  },
+  mounted(){
+    window.onresize=()=>{
+      console.log(activeKey.value)
+
+      if(editorMap.values().next().value){
+        editorMap.values().next().value.layout({width: this.$refs.editorContainer.offsetWidth,height:300})
+      }
+    }
   },
   methods: {
     handlerInitialize()
@@ -191,6 +202,7 @@ export default defineComponent({
       else {
         editorMap.set(activeKey.value, editor);
       }
+      // 这里获取的宽度总是比实际的多200
       FunctionsService.getByPlugin(language)
         .then((response) => {
           if (response.status) {
@@ -229,7 +241,11 @@ export default defineComponent({
             });
           }
         });
-    },
+
+        console.log('宽度', this.$refs.editorContainer.offsetWidth)
+        editorMap.get(activeKey.value).layout({width: this.$refs.editorContainer.offsetWidth,height:300})
+
+      },
     handlerRun()
     {
       this.tableConfigure = null;
@@ -306,9 +322,10 @@ export default defineComponent({
     {
       activeKey.value = 'newTab' + activeKey.value + Date.parse(new Date().toString());
       editors.value.push({title: 'New Tab', key: activeKey.value, closable: true});
-      editorValueMap.set(activeKey.value, '');
-      this.handlerEditorDidMount(null, this.applySourceType, activeKey.value);
+      editorValueMap.set(activeKey.value, '' );
+      // this.handlerChangeEditor(activeKey.value);
       this.activeEditorValue = editorValueMap.get(activeKey.value) as string;
+      this.handlerEditorDidMount(null, this.applySourceType, activeKey.value);
     },
     handlerMinusEditor(targetKey: string)
     {
@@ -354,5 +371,10 @@ export default defineComponent({
 
 .center {
   text-align: center;
+}
+.monacoEditorBox{
+  width: 100%;
+  position: relative;
+  overflow: hidden;
 }
 </style>
