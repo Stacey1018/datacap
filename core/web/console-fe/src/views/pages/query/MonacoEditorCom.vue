@@ -6,7 +6,9 @@
 import * as monaco from 'monaco-editor'
 import {defineComponent, ref, toRaw} from "vue";
 export default{
-    props:['modelValue'],
+    props:{
+      code: String
+    },
     data(){
         return {
             editor:null,//文本编辑器
@@ -16,9 +18,9 @@ export default{
       this.initEditor();
     },
     watch:{
-      modelValue(oldVal,newVal){
+      code(oldVal,newVal){
         // this.editor.
-        console.log('111', newVal)
+        console.log('监听code', newVal)
       }
     },
     methods:{
@@ -30,16 +32,14 @@ export default{
                 automaticLayout: true,//自动布局
                 theme:'vs-dark' //官方自带三种主题vs, hc-black, or vs-dark
             });
-            console.log(this.editor)
             const editor = this.editor
             this.editor.onDidChangeModelContent((value)=>{
-              console.log('fsdfasdfa')
-              const val = toRaw(editor.value).getValue()
-              console.log(val)
+              const val = toRaw(editor).getValue()
+              this.$emit('change',val)
             })
         },
         getValue(){
-            this.editor.getValue(); //获取编辑器中的文本
+            return toRaw(this.editor).getValue(); //获取编辑器中的文本
         }
     }
 }

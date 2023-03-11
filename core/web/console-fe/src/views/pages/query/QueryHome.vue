@@ -65,11 +65,11 @@
 
                 </TabPane>
               </Tabs>
-              <!-- <MonacoEditorCom /> -->
-              <MonacoEditor class="monacoEditor" theme="vs" :options="{theme: 'vs-dark', fontSize: 15}" language="sql" :height="300"
+              <MonacoEditorCom v-model:code="activeEditorValue" @change="handlerChangeEditorValue"/>
+              <!-- <MonacoEditor class="monacoEditor" theme="vs" :options="{theme: 'vs-dark', fontSize: 15}" language="sql" :height="300"
                                 :key="activeKey.value" @change="handlerChangeEditorValue" :width="'100%'"
                                 v-model:value="activeEditorValue" @editorDidMount="handlerEditorDidMount($event, 'mysql')">
-                </MonacoEditor>
+                </MonacoEditor> -->
             </div>
           </Card>
 
@@ -109,12 +109,12 @@ const editors = ref<{ title: string; key: string; closable?: boolean; automaticL
   {title: 'Editor', key: '1', closable: false, automaticLayout: true}
 ]);
 const activeKey = ref(editors.value[0].key);
-const editorMap = new Map<string, monaco.editor.ICodeEditor>();
+const editorMap = new Map<string, string>();
 const editorValueMap = new Map<string, string>();
 
 export default defineComponent({
   name: "QueryHome",
-  components: {BasicTableComponent, SnippetDetails, DatabaseTree, SourceSelect, MonacoEditor},
+  components: {BasicTableComponent, SnippetDetails, DatabaseTree, SourceSelect, MonacoEditorCom},
   unmounted()
   {
     if (this.editorCompletionProvider) {
@@ -152,9 +152,7 @@ export default defineComponent({
     this.handlerInitialize();
   },
   mounted(){
-    console.log('his.$refs.editorContainer.offsetWidth,height',this.$refs.editorContainer.offsetWidth)
     window.onresize=()=>{
-      console.log(activeKey.value)
 
       if(editorMap.values().next().value){
         editorMap.values().next().value.layout({width: this.$refs.editorContainer.offsetWidth,height:300})
@@ -245,11 +243,6 @@ export default defineComponent({
           }
         });
 
-        console.log('宽度', this.$refs.editorContainer.offsetWidth)
-       setTimeout(()=>{
-        editorMap.values().next().value?.layout({width: this.$refs.editorContainer.offsetWidth,height:300})
-       },200)
-
       },
     handlerRun()
     {
@@ -292,7 +285,7 @@ export default defineComponent({
       this.applySource = idAndType[0];
       this.applySourceType = idAndType[1];
       this.editorCompletionProvider.dispose();
-      this.handlerEditorDidMount(editorMap.get(activeKey.value), idAndType[1]);
+      // this.handlerEditorDidMount(editorMap.get(activeKey.value), idAndType[1]);
     },
     handlerFormat()
     {
@@ -328,9 +321,10 @@ export default defineComponent({
       activeKey.value = 'newTab' + activeKey.value + Date.parse(new Date().toString());
       editors.value.push({title: 'New Tab', key: activeKey.value, closable: true});
       editorValueMap.set(activeKey.value, '' );
+      console.log('1111', editorValueMap.get(activeKey.value))
       // this.handlerChangeEditor(activeKey.value);
-      this.activeEditorValue = editorValueMap.get(activeKey.value) as string;
-      this.handlerEditorDidMount(null, this.applySourceType, activeKey.value);
+      this.activeEditorValue = '';
+      // this.handlerEditorDidMount(null, this.applySourceType, activeKey.value);
     },
     handlerMinusEditor(targetKey: string)
     {
@@ -355,10 +349,12 @@ export default defineComponent({
     },
     handlerChangeEditor(targetKey: string)
     {
+      console.log('切换',editorValueMap)
       this.activeEditorValue = editorValueMap.get(targetKey) as string;
     },
     handlerChangeEditorValue(value: string)
     {
+      // this.activeEditorValue = value
       editorValueMap.set(activeKey.value, value);
     }
   },
