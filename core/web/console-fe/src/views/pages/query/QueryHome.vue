@@ -65,8 +65,9 @@
 
                 </TabPane>
               </Tabs>
-              <MonacoEditor theme="vs" :options="{theme: 'vs-dark', fontSize: 15}" language="sql" :height="300"
-                                :key="activeKey.value" @change="handlerChangeEditorValue"
+              <!-- <MonacoEditorCom /> -->
+              <MonacoEditor class="monacoEditor" theme="vs" :options="{theme: 'vs-dark', fontSize: 15}" language="sql" :height="300"
+                                :key="activeKey.value" @change="handlerChangeEditorValue" :width="'100%'"
                                 v-model:value="activeEditorValue" @editorDidMount="handlerEditorDidMount($event, 'mysql')">
                 </MonacoEditor>
             </div>
@@ -101,6 +102,7 @@ import SnippetDetails from "@/views/pages/admin/snippet/SnippetDetails.vue";
 import BasicTableComponent from "@/components/table/BasicTable.vue";
 import {AuditService} from "@/services/AuditService";
 import FunctionsService from "@/services/settings/functions/FunctionsService";
+import MonacoEditorCom from './MonacoEditorCom.vue'
 import {useI18n} from "vue-i18n";
 
 const editors = ref<{ title: string; key: string; closable?: boolean; automaticLayout?: boolean }[]>([
@@ -150,6 +152,7 @@ export default defineComponent({
     this.handlerInitialize();
   },
   mounted(){
+    console.log('his.$refs.editorContainer.offsetWidth,height',this.$refs.editorContainer.offsetWidth)
     window.onresize=()=>{
       console.log(activeKey.value)
 
@@ -243,7 +246,9 @@ export default defineComponent({
         });
 
         console.log('宽度', this.$refs.editorContainer.offsetWidth)
-        editorMap.get(activeKey.value).layout({width: this.$refs.editorContainer.offsetWidth,height:300})
+       setTimeout(()=>{
+        editorMap.values().next().value?.layout({width: this.$refs.editorContainer.offsetWidth,height:300})
+       },200)
 
       },
     handlerRun()
@@ -372,6 +377,9 @@ export default defineComponent({
 .center {
   text-align: center;
 }
+/* .monacoEditor{
+  width: 100%
+} */
 .monacoEditorBox{
   width: 100%;
   position: relative;
